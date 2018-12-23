@@ -2,19 +2,17 @@ from abc import ABC, abstractmethod
 
 
 class Base(ABC):
-    def __init__(self, *, batch_size):
-        self._train_data = None
-        self._test_data = None
+    def __init__(self):
+        self.train_init_op = None
+        self.test_init_op = None
 
-        self._batch_size = batch_size
+        self.x = None
+        self.y = None
 
-    @property
-    def train_data(self):
-        return self._train_data
+        self.train_size = None
+        self.test_size = None
 
-    @property
-    def test_data(self):
-        return self._test_data
+        self.batch_size = None
 
     @abstractmethod
     def show(self):
