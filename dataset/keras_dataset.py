@@ -1,5 +1,6 @@
+from abc import abstractmethod
+
 from tensorflow.python.data import Iterator, Dataset
-from tensorflow.python.keras.datasets import mnist
 import tensorflow as tf
 import numpy as np
 from skimage import io
@@ -7,14 +8,15 @@ from skimage import io
 from dataset.datasetbase import DatasetBase
 
 
-class MNIST(DatasetBase):
-    def __init__(self, *, batch_size):
+class _KerasDataset(DatasetBase):
+    def __init__(self, *, batch_size, num_classes):
         super().__init__()
+        self._num_classes = num_classes
         self.batch_size = batch_size
-        (x_train, y_train), (x_test, y_test) = mnist.load_data()
+        (x_train, y_train), (x_test, y_test) = self._load_data()
 
-        x_train = np.float32(np.expand_dims(x_train, -1))
-        x_test = np.float32(np.expand_dims(x_test, -1))
+        x_train = np.float32(x_train)
+        x_test = np.float32(x_test)
 
         y_train = np.float32(self._to_one_hot(y_train))
         y_test = np.float32(self._to_one_hot(y_test))
@@ -39,9 +41,14 @@ class MNIST(DatasetBase):
         self.train_init_op = iter_.make_initializer(train_dataset)
         self.test_init_op = iter_.make_initializer(test_dataset)
 
+    @abstractmethod
+    def _load_data(self):
+        raise NotImplementedError
+
     def _to_one_hot(self, inputs):
-        one_hot = np.zeros((inputs.size, inputs.max() + 1))
-        one_hot[np.arange(inputs.size), inputs] = 1
+        one_hot = tf.keras.utils.to_categorical(inputs, self._num_classes)
+        # one_hot = np.zeros((inputs.size, self._num_classes))
+        # one_hot[np.arange(inputs.size), inputs] = 1
 
         return one_hot
 
@@ -59,6 +66,7 @@ class MNIST(DatasetBase):
 
     def show(self):
         np.random.seed(0)
+        tf.random.set_random_seed(0)
 
         train = True
         test = False
@@ -85,10 +93,60 @@ class MNIST(DatasetBase):
 
                 for x, y in zip(x, y):
                     print(y)
-                    io.imshow(x[:, :, 0], cmap='gray')
+                    if x.shape[-1] == 1:
+                        io.imshow(x[:, :, 0], cmap="gray")
+                    elif x.shape[-1] == 3:
+                        io.imshow(x)
+                    else:
+                        raise ValueError
+
                     io.show()
 
 
+class MNIST(_KerasDataset):
+    def __init__(self, *, batch_size):
+        super().__init__(batch_size=batch_size, num_classes=10)
+
+    @staticmethod
+    def _load():
+        from tensorflow.python.keras.datasets import mnist as dataloader
+        return dataloader.load_data()
+
+    def _load_data(self):
+        out = [list(i) for i in self._load()]
+        for i in range(len(out)):
+            for j in range(len(out[i])):
+                out[i][j] = out[i][j].reshape((*out[i][j].shape, 1))
+                out[i][j].flags['WRITEABLE'] = True
+
+        return out
+
+
+class FashionMNIST(MNIST):
+    @staticmethod
+    def _load():
+        from tensorflow.python.keras.datasets import fashion_mnist as dataloader
+        return dataloader.load_data()
+
+
+class CIFAR10(_KerasDataset):
+    def __init__(self, *, batch_size):
+        super().__init__(batch_size=batch_size, num_classes=10)
+
+    def _load_data(self):
+        from tensorflow.python.keras.datasets import cifar10 as dataloader
+        return dataloader.load_data()
+
+
+class CIFAR100(_KerasDataset):
+    def __init__(self, *, batch_size):
+        super().__init__(batch_size=batch_size, num_classes=100)
+
+    def _load_data(self):
+        from tensorflow.python.keras.datasets import cifar100 as dataloader
+        return dataloader.load_data()
+
+
 if __name__ == '__main__':
-    dataset = MNIST(batch_size=10)
+    dataset = CIFAR100(batch_size=10)
     dataset.show()
