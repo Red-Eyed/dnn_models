@@ -124,3 +124,10 @@ Thumbs.db
 
 # pytest
 .pytest_cache
+
+# TensorFlow
+checkpoint
+*.data-*
+*.index
+*.meta
+
