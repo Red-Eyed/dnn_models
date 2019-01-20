@@ -16,6 +16,9 @@ class Model(ABC):
         self._func_loss = self.loss
         self._func_optimize = self.optimize
 
+    def __str__(self):
+        return self.__class__.__name__
+
     @abstractmethod
     def _logits_internal(self):
         raise NotImplementedError

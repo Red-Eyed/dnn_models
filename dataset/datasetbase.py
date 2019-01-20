@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class Base(ABC):
+class DatasetBase(ABC):
     def __init__(self):
         self.train_init_op = None
         self.test_init_op = None

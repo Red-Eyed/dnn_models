@@ -4,10 +4,10 @@ import tensorflow as tf
 import numpy as np
 from skimage import io
 
-from dataset.base import Base
+from dataset.datasetbase import DatasetBase
 
 
-class MNIST(Base):
+class MNIST(DatasetBase):
     def __init__(self, *, batch_size):
         super().__init__()
         self.batch_size = batch_size
