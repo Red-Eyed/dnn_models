@@ -6,14 +6,17 @@ import numpy as np
 from skimage import io
 
 from dataset.datasetbase import DatasetBase
-from utils.image import max_min_norm, image_norm
+from utils.image import image_norm
 
 
 class _KerasDataset(DatasetBase):
-    def __init__(self, *, batch_size, num_classes):
+    def __init__(self, *, batch_size, num_classes, prefetch_size=1e8, shuffle_size=1000):
         super().__init__()
         self._num_classes = num_classes
         self.batch_size = batch_size
+        self.prefetch_size = int(prefetch_size)
+        self.shuffle_size = int(shuffle_size)
+
         (x_train, y_train), (x_test, y_test) = self._load_data()
 
         x_train = np.float32(x_train) / 255.
@@ -29,10 +32,14 @@ class _KerasDataset(DatasetBase):
         output_shape = (x_train.shape[1:], y_train.shape[1:])
 
         train_dataset = Dataset.from_generator(lambda: self._gen_data(x_train, y_train), output_types, output_shape). \
-            shuffle(1000).batch(self.batch_size, drop_remainder=True)
+            shuffle(self.shuffle_size).\
+            batch(self.batch_size, drop_remainder=True).\
+            prefetch(self.prefetch_size)
 
         test_dataset = Dataset.from_generator(lambda: self._gen_data(x_test, y_test), output_types, output_shape). \
-            shuffle(1000).batch(self.batch_size, drop_remainder=True)
+            shuffle(self.shuffle_size).\
+            batch(self.batch_size, drop_remainder=True).\
+            prefetch(self.prefetch_size)
 
         iter_ = Iterator.from_structure(train_dataset.output_types,
                                         train_dataset.output_shapes)

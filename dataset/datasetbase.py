@@ -13,6 +13,8 @@ class DatasetBase(ABC):
         self.test_size = None
 
         self.batch_size = None
+        self.shuffle_size = None
+        self.shuffle_size = None
 
     @abstractmethod
     def show(self):
