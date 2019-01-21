@@ -130,4 +130,4 @@ checkpoint
 *.data-*
 *.index
 *.meta
-
+logdir
