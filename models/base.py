@@ -1,13 +1,16 @@
 from abc import ABC, abstractmethod
+from itertools import dropwhile
 from typing import Callable
 import tensorflow as tf
 
 
 class Model(ABC):
-    def __init__(self, x: tf.Tensor, y: tf.Tensor):
+    def __init__(self, x: tf.Tensor, y: tf.Tensor, dropout_rate=0., learning_rate=0.001):
         self._x = x
         self._y = y
 
+        self.dropout_rate = tf.placeholder_with_default(float(dropout_rate), shape=(), name="drop_out_rate")
+        self.learning_rate = learning_rate
         self._logits_op = None
         self._loss_op = None
         self._optimise_op = None
@@ -28,7 +31,7 @@ class Model(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _optimize(self, *, learning_rate=0.001):
+    def _optimize(self):
         raise NotImplementedError
 
     @abstractmethod
@@ -53,9 +56,9 @@ class Model(ABC):
 
         return self._loss_op
 
-    def optimize(self, *, learning_rate=0.001):
+    def optimize(self):
         if self._optimise_op is None:
-            self._optimise_op = self._optimize(learning_rate=learning_rate)
+            self._optimise_op = self._optimize()
 
         return self._optimise_op
 

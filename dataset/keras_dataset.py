@@ -6,6 +6,7 @@ import numpy as np
 from skimage import io
 
 from dataset.datasetbase import DatasetBase
+from utils.image import max_min_norm, image_norm
 
 
 class _KerasDataset(DatasetBase):
@@ -15,8 +16,8 @@ class _KerasDataset(DatasetBase):
         self.batch_size = batch_size
         (x_train, y_train), (x_test, y_test) = self._load_data()
 
-        x_train = np.float32(x_train)
-        x_test = np.float32(x_test)
+        x_train = np.float32(x_train) / 255.
+        x_test = np.float32(x_test) / 255.
 
         y_train = np.float32(self._to_one_hot(y_train))
         y_test = np.float32(self._to_one_hot(y_test))
@@ -28,10 +29,10 @@ class _KerasDataset(DatasetBase):
         output_shape = (x_train.shape[1:], y_train.shape[1:])
 
         train_dataset = Dataset.from_generator(lambda: self._gen_data(x_train, y_train), output_types, output_shape). \
-            batch(self.batch_size, drop_remainder=True)
+            shuffle(1000).batch(self.batch_size, drop_remainder=True)
 
         test_dataset = Dataset.from_generator(lambda: self._gen_data(x_test, y_test), output_types, output_shape). \
-            batch(self.batch_size, drop_remainder=True)
+            shuffle(1000).batch(self.batch_size, drop_remainder=True)
 
         iter_ = Iterator.from_structure(train_dataset.output_types,
                                         train_dataset.output_shapes)
@@ -47,19 +48,10 @@ class _KerasDataset(DatasetBase):
 
     def _to_one_hot(self, inputs):
         one_hot = tf.keras.utils.to_categorical(inputs, self._num_classes)
-        # one_hot = np.zeros((inputs.size, self._num_classes))
-        # one_hot[np.arange(inputs.size), inputs] = 1
-
         return one_hot
 
     def _gen_data(self, x, y):
         assert len(x) == len(y)
-
-        idx = np.arange(0, x.shape[0], 1)
-        np.random.shuffle(idx)
-
-        np.take(x, indices=idx, axis=0, out=x)
-        np.take(y, indices=idx, axis=0, out=y)
 
         for x, y in zip(x, y):
             yield x, y
@@ -94,9 +86,9 @@ class _KerasDataset(DatasetBase):
                 for x, y in zip(x, y):
                     print(y)
                     if x.shape[-1] == 1:
-                        io.imshow(x[:, :, 0], cmap="gray")
+                        io.imshow(image_norm(x[:, :, 0]), cmap="gray")
                     elif x.shape[-1] == 3:
-                        io.imshow(x)
+                        io.imshow(image_norm(x))
                     else:
                         raise ValueError
 
@@ -148,5 +140,5 @@ class CIFAR100(_KerasDataset):
 
 
 if __name__ == '__main__':
-    dataset = CIFAR100(batch_size=10)
+    dataset = MNIST(batch_size=10)
     dataset.show()
