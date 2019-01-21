@@ -2,7 +2,11 @@ from abc import ABC, abstractmethod
 
 
 class DatasetBase(ABC):
-    def __init__(self):
+    def __init__(self, batch_size, prefetch_size, shuffle_size):
+        self.batch_size = batch_size
+        self.prefetch_size = int(prefetch_size)
+        self.shuffle_size = int(shuffle_size)
+
         self.train_init_op = None
         self.test_init_op = None
 
@@ -12,9 +16,6 @@ class DatasetBase(ABC):
         self.train_size = None
         self.test_size = None
 
-        self.batch_size = None
-        self.shuffle_size = None
-        self.shuffle_size = None
 
     @abstractmethod
     def show(self):

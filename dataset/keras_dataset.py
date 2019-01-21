@@ -11,11 +11,9 @@ from utils.image import image_norm
 
 class _KerasDataset(DatasetBase):
     def __init__(self, *, batch_size, num_classes, prefetch_size=1e8, shuffle_size=1000):
-        super().__init__()
+        super().__init__(batch_size, prefetch_size, shuffle_size)
+
         self._num_classes = num_classes
-        self.batch_size = batch_size
-        self.prefetch_size = int(prefetch_size)
-        self.shuffle_size = int(shuffle_size)
 
         (x_train, y_train), (x_test, y_test) = self._load_data()
 
@@ -103,8 +101,8 @@ class _KerasDataset(DatasetBase):
 
 
 class MNIST(_KerasDataset):
-    def __init__(self, *, batch_size):
-        super().__init__(batch_size=batch_size, num_classes=10)
+    def __init__(self, *, batch_size, **kwargs):
+        super().__init__(batch_size=batch_size, num_classes=10, **kwargs)
 
     @staticmethod
     def _load():
@@ -129,8 +127,8 @@ class FashionMNIST(MNIST):
 
 
 class CIFAR10(_KerasDataset):
-    def __init__(self, *, batch_size):
-        super().__init__(batch_size=batch_size, num_classes=10)
+    def __init__(self, *, batch_size, **kwargs):
+        super().__init__(batch_size=batch_size, num_classes=10, **kwargs)
 
     def _load_data(self):
         from tensorflow.python.keras.datasets import cifar10 as dataloader
@@ -138,8 +136,8 @@ class CIFAR10(_KerasDataset):
 
 
 class CIFAR100(_KerasDataset):
-    def __init__(self, *, batch_size):
-        super().__init__(batch_size=batch_size, num_classes=100)
+    def __init__(self, *, batch_size, **kwargs):
+        super().__init__(batch_size=batch_size, num_classes=100, **kwargs)
 
     def _load_data(self):
         from tensorflow.python.keras.datasets import cifar100 as dataloader
@@ -147,5 +145,5 @@ class CIFAR100(_KerasDataset):
 
 
 if __name__ == '__main__':
-    dataset = MNIST(batch_size=10)
+    dataset = CIFAR10(batch_size=10, prefetch_size=10, shuffle_size=10)
     dataset.show()
