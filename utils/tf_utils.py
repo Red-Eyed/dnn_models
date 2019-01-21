@@ -26,7 +26,7 @@ def get_num_of_parameters():
     return total_parameters
 
 
-def fit(model: Model, dataset: DatasetBase, save_interval_minute: int = 15, save_path: Path = Path("./"), epochs=1):
+def fit(model: Model, dataset: DatasetBase, save_path: Path, save_interval_minute: int = 15, epochs: int = 1):
     save_path = save_path.expanduser().absolute()
 
     model.build_graph()
@@ -97,15 +97,15 @@ def fit(model: Model, dataset: DatasetBase, save_interval_minute: int = 15, save
         saver.save(sess, str(save_path / str(model) / str(model)))
 
 
-def predict(model: Model, dataset: DatasetBase, load_path: Path):
-    load_path = load_path.expanduser().absolute()
+def predict(model: Model, dataset: DatasetBase, restore_path: Path):
+    restore_path = restore_path.expanduser().absolute()
 
     model.build_graph()
     saver = tf.train.Saver(save_relative_paths=True)
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        saver.restore(sess, str(load_path))
+        saver.restore(sess, str(restore_path))
 
         while True:
             sess.run(dataset.test_init_op)
