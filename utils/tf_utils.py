@@ -63,8 +63,10 @@ def fit(model: Model, dataset: DatasetBase, save_path: Path, save_interval_minut
                 phase = 'train' if train else 'test'
                 loss = 0
                 if phase == 'train':
+                    tf.keras.backend.set_learning_phase(1)
                     loss, _, = sess.run([model.loss(), model.optimize()])
                 elif phase == 'test':
+                    tf.keras.backend.set_learning_phase(0)
                     loss = sess.run(model.loss())
 
                 sum_loss += loss
@@ -111,8 +113,8 @@ def predict(model: Model, dataset: DatasetBase, restore_path: Path):
             sess.run(dataset.test_init_op)
 
             try:
-                feed_dict = {tf.keras.backend.learning_phase(): 0}
-                pred, x, y = sess.run([model.predict(), dataset.x, dataset.y], feed_dict=feed_dict)
+                tf.keras.backend.set_learning_phase(0)
+                pred, x, y = sess.run([model.predict(), dataset.x, dataset.y])
                 pred = np.argmax(pred)
                 print(pred)
                 io.imshow(x[0, :, :, 0], cmap="gray")
