@@ -73,4 +73,3 @@ class Model(ABC):
         self.loss()
         self.optimize()
         self.predict()
-

@@ -63,8 +63,7 @@ def fit(model: Model, dataset: DatasetBase, save_path: Path, save_interval_minut
                 phase = 'train' if train else 'test'
                 loss = 0
                 if phase == 'train':
-
-                    loss, _, = sess.run([model.loss(), model.optimize()])
+                    loss, _, = sess.run([model.loss(), model.optimize()], feed_dict={tf.keras.backend.learning_phase(): 1})
                 elif phase == 'test':
                     loss = sess.run(model.loss(), feed_dict={tf.keras.backend.learning_phase(): 0})
 
