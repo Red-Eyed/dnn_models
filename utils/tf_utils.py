@@ -35,6 +35,7 @@ def fit(model: Model, dataset: DatasetBase, save_path: Path, save_interval_minut
     test = not train
     switch = True
     sum_loss = 0
+    sum_acc = 0
     saver = tf.train.Saver(save_relative_paths=True)
 
     epoch = -1
@@ -62,14 +63,21 @@ def fit(model: Model, dataset: DatasetBase, save_path: Path, save_interval_minut
             try:
                 phase = 'train' if train else 'test'
                 loss = 0
+                acc = 0
                 if phase == 'train':
-                    loss, _, = sess.run([model.loss(), model.optimize()], feed_dict={tf.keras.backend.learning_phase(): 1})
+                    loss, acc, _, = sess.run([model.loss(), model.accuracy(), model.optimize()],
+                                             feed_dict={tf.keras.backend.learning_phase(): 1})
                 elif phase == 'test':
-                    loss = sess.run(model.loss(), feed_dict={tf.keras.backend.learning_phase(): 0})
+                    loss, acc = sess.run([model.loss(), model.accuracy()],
+                                         feed_dict={tf.keras.backend.learning_phase(): 0})
 
                 sum_loss += loss
+                sum_acc += acc
+
+                batches = (progress.n / dataset.batch_size + 1)
                 desc = f"Epoch: {epoch:<5}| Phase: {phase :<10}| " \
-                    f"loss: {sum_loss / (progress.n + dataset.batch_size) :<25}"
+                    f"loss: {sum_loss / batches :<25}| " \
+                    f"acc:  {sum_acc / batches :<25}| "
 
                 progress.set_description(desc=desc)
                 progress.update(dataset.batch_size)
@@ -82,6 +90,7 @@ def fit(model: Model, dataset: DatasetBase, save_path: Path, save_interval_minut
                 switch = True
                 progress.n = 0
                 sum_loss = 0
+                sum_acc = 0
 
                 if now - datetime.now().minute >= save_interval_minute:
                     now = datetime.now().minute

@@ -11,10 +11,12 @@ class Model(ABC):
 
         self.dropout_rate = tf.placeholder_with_default(float(dropout_rate), shape=(), name="drop_out_rate")
         self.learning_rate = learning_rate
+
         self._logits_op = None
         self._loss_op = None
         self._optimise_op = None
         self._predict_op = None
+        self._accuracy_op = None
 
         self._func_loss = self.loss
         self._func_optimize = self.optimize
@@ -23,19 +25,23 @@ class Model(ABC):
         return self.__class__.__name__
 
     @abstractmethod
-    def _logits_internal(self):
+    def _logits_impl(self):
         raise NotImplementedError
 
     @abstractmethod
-    def _loss_internal(self):
+    def _loss_impl(self):
         raise NotImplementedError
 
     @abstractmethod
-    def _optimize(self):
+    def _optimize_impl(self):
         raise NotImplementedError
 
     @abstractmethod
-    def _predict_internal(self):
+    def _predict_impl(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def _accuracy_impl(self):
         raise NotImplementedError
 
     def set_loss(self, func: Callable):
@@ -46,27 +52,33 @@ class Model(ABC):
 
     def logits(self):
         if self._logits_op is None:
-            self._logits_op = self._logits_internal()
+            self._logits_op = self._logits_impl()
 
         return self._logits_op
 
     def loss(self):
         if self._loss_op is None:
-            self._loss_op = self._loss_internal()
+            self._loss_op = self._loss_impl()
 
         return self._loss_op
 
     def optimize(self):
         if self._optimise_op is None:
-            self._optimise_op = self._optimize()
+            self._optimise_op = self._optimize_impl()
 
         return self._optimise_op
 
     def predict(self):
         if self._predict_op is None:
-            self._predict_op = self._predict_internal()
+            self._predict_op = self._predict_impl()
 
         return self._predict_op
+
+    def accuracy(self):
+        if self._accuracy_op is None:
+            self._accuracy_op = self._accuracy_impl()
+
+        return self._accuracy_op
 
     def build_graph(self):
         self.logits()
