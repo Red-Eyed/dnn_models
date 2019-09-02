@@ -35,7 +35,7 @@ class AlexNet(nn.Module):
                                 nn.Dropout(),
                                 nn.Linear(in_features=fc_neurons, out_features=fc_neurons),
                                 nn.ReLU(),
-                                nn.Linear(in_features=out_shape, out_features=num_classes),
+                                nn.Linear(in_features=fc_neurons, out_features=num_classes),
                                 nn.Dropout()
                                 )
 
@@ -49,8 +49,8 @@ class AlexNet(nn.Module):
 if __name__ == '__main__':
     batch_size = 32
     chanels = 3
-    w = 224
-    h = 224
+    w = 1024
+    h = 1024
     num_classes = 10
     data = torch.ones([batch_size, chanels, w, h])
     model = AlexNet(data, 10).forward(data)
